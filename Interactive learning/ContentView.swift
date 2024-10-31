@@ -8,17 +8,25 @@
 import SwiftUI
 import RiveRuntime
 
+enum answerState: String, CaseIterable {
+    case idle
+    case correct
+    case wrong
+}
+
 struct ContentView: View {
     
     @State var climber = RiveViewModel(fileName: "climber", stateMachineName: "main")
     @State var option = RiveViewModel(fileName: "option_button", stateMachineName: "main", fit:.contain)
     @State var mainButton = RiveViewModel(fileName: "main_button", stateMachineName: "main", fit:.contain)
-    @State var value1:Int = Int.random(in: 1...20)
-    @State var value2:Int = Int.random(in: 1...20)
+    @State var value1:Int = 0
+    @State var value2:Int = 0
     @State var choice:[Int] = []
     @State var isPressed: Bool = false
     @State var answer: Int = 0
     @State var selectedChoice: Int? = nil
+    @State var answerState: answerState = .idle
+    @State var level:Double = 0
     var correctAnswer: Int {
             value1 + value2
         }
@@ -27,6 +35,21 @@ struct ContentView: View {
             VStack{
                 climber.view()
                     .frame(height: 511)
+                    .onChange(of: level) { oldValue, newValue in
+                        if level == 4 {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                level = 0
+                            }
+                            
+                        }
+                        climber.setInput("Stage", value: level)
+                    }
+                    .onChange(of: answerState) { oldValue, newValue in
+                        if newValue == .wrong {
+                            climber.triggerInput("wrong?")
+                        }
+                    }
+                    
                 Spacer()
             }
             VStack {
@@ -45,7 +68,7 @@ struct ContentView: View {
                     Spacer()
                     LazyVGrid(columns: [GridItem(),GridItem()], spacing: 12) {
                         ForEach(choice, id: \.self) {choice in
-                            optionView(choice: choice, selectedChoice: $selectedChoice) {
+                            optionView(choice: choice, selectedChoice: $selectedChoice, answerState: $answerState) {
                                     withAnimation {
                                         answer = choice
                                         isPressed = true
@@ -54,14 +77,24 @@ struct ContentView: View {
                                 }
                         }
                     }
+                    .allowsHitTesting(answerState == .idle)
                     Spacer()
                     mainButton.view()
                         .frame(height:70)
                         .onTapGesture {
-                            if answer == correctAnswer {
-                                mainButton.setInput("type", value: Double(2))
+                            if answerState == .idle {
+                                if answer == correctAnswer {
+                                    mainButton.setInput("type", value: Double(2))
+                                    answerState = .correct
+                                    level = level + 1
+                                } else {
+                                    mainButton.setInput("type", value: Double(3))
+                                    answerState = .wrong
+                                }
                             } else {
-                                mainButton.setInput("type", value: Double(3))
+                                answerState = .idle
+                                mainButton.setInput("type", value: Double(0))
+                                isPressed = false
                             }
                         }
                         .onChange(of: isPressed) { oldValue, newValue in
@@ -83,10 +116,17 @@ struct ContentView: View {
             .onAppear {
                 generateChoices()
             }
+            .onChange(of: answerState) { _,newValue in
+                if answerState == .idle {
+                    generateChoices()
+                }
+               
+            }
     }
     // Function to generate the choices, including the correct answer and three random values
       func generateChoices() {
-          
+          value1 = Int.random(in: 1...20)
+          value2 = Int.random(in: 1...20)
           choice = [correctAnswer]
           while choice.count < 4 {
               let randomValue = Int.random(in: 1...40)
@@ -107,6 +147,7 @@ struct optionView: View {
     @State var option = RiveViewModel(fileName: "option_button", stateMachineName: "main", fit: .contain)
     @State var choice: Int
     @Binding var selectedChoice: Int?
+    @Binding var answerState: answerState
     var action: () -> Void
     
     var body: some View {
@@ -122,6 +163,15 @@ struct optionView: View {
             .onChange(of: selectedChoice) { _, newValue in
                 if newValue != choice {
                     option.setInput("state", value: Double(0)) // Reset unselected options
+                }
+            }
+            .onChange(of: answerState) { _, newValue in
+                if selectedChoice == choice {
+                    if newValue == .correct {
+                        option.setInput("state", value: Double(2))
+                    } else if answerState == .wrong {
+                        option.setInput("state", value: Double(3))
+                    }
                 }
             }
     }
