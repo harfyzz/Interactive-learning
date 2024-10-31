@@ -56,28 +56,47 @@ struct ContentView: View {
                 Spacer()
                 VStack{
                     HStack {
-                        Text("\(value1) + \(value2)")
-                        if isPressed {
-                            Text("= \(answer)")
-                                .contentTransition(.numericText())
+                        Text("\(value1) + \(value2) =")
+                        
+                            ZStack{
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color("Bg.secondary"))
+                                    .frame(width:86,height:56)
+                                if isPressed {
+                                Text("\(answer)")
+                                    .contentTransition(.numericText())
+                            }
                         }
                     }.foregroundStyle(Color("text.main"))
-                        .font(.system(size: 55))
+                        .font(.system(size: 45))
                         .fontWeight(.medium)
                         .contentTransition(.numericText())
                     Spacer()
-                    LazyVGrid(columns: [GridItem(),GridItem()], spacing: 12) {
-                        ForEach(choice, id: \.self) {choice in
-                            optionView(choice: choice, selectedChoice: $selectedChoice, answerState: $answerState) {
+                    ZStack {
+                        VStack {Spacer()
+                            Divider()
+                                .tint(Color("text.main"))
+                            Spacer()
+                            Divider()
+                                .tint(Color("text.main"))
+                            Spacer()
+                            Divider()
+                                .tint(Color("text.main"))
+                            Spacer()
+                        }
+                        VStack {
+                            ForEach(choice, id: \.self) {choice in
+                                optionView(choice: choice, selectedChoice: $selectedChoice, answerState: $answerState) {
                                     withAnimation {
                                         answer = choice
                                         isPressed = true
                                         selectedChoice = choice
                                     }
                                 }
+                            }
                         }
+                        .allowsHitTesting(answerState == .idle)
                     }
-                    .allowsHitTesting(answerState == .idle)
                     Spacer()
                     mainButton.view()
                         .frame(height:70)
@@ -91,10 +110,12 @@ struct ContentView: View {
                                     mainButton.setInput("type", value: Double(3))
                                     answerState = .wrong
                                 }
-                            } else {
+                            } else { withAnimation {
                                 answerState = .idle
                                 mainButton.setInput("type", value: Double(0))
                                 isPressed = false
+                                selectedChoice = nil
+                            }
                             }
                         }
                         .onChange(of: isPressed) { oldValue, newValue in
@@ -106,13 +127,15 @@ struct ContentView: View {
                 .padding(.vertical, 32)
                 .frame(height: UIScreen.main.bounds.height/2)
                 .background(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .clipShape(RoundedRectangle(cornerRadius: 32))
+                    .shadow(color:Color("text.main").opacity(0.1), radius: 20)
                 
             }
             
         }.padding()
             .background(Color("Background"))
             .ignoresSafeArea()
+            .preferredColorScheme(.light)
             .onAppear {
                 generateChoices()
             }
@@ -128,7 +151,7 @@ struct ContentView: View {
           value1 = Int.random(in: 1...20)
           value2 = Int.random(in: 1...20)
           choice = [correctAnswer]
-          while choice.count < 4 {
+          while choice.count < 3 {
               let randomValue = Int.random(in: 1...40)
               if !choice.contains(randomValue) {
                   choice.append(randomValue)
@@ -152,7 +175,7 @@ struct optionView: View {
     
     var body: some View {
         option.view()
-            .frame(height: 50)
+            .frame(height: 55)
             .onAppear {
                 try! option.setTextRunValue("option text", textValue: String(choice))
             }
