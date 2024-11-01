@@ -30,6 +30,7 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             VStack{
+                
                 climber.view()
                     .frame(height: 511)
                     .onChange(of: stage) { oldValue, newValue in
@@ -54,10 +55,13 @@ struct ContentView: View {
                 VStack{
                     if level == 1 {
                         Level01(isPressed: $isPressed, answerState: $answerState, correctAnswer: $correctAnswer)
+                            .transition(.slide)
                     } else if level == 2 {
                         Level02(isPressed: $isPressed, answerState: $answerState, correctAnswer: $correctAnswer)
+                            .transition(.slide)
                     } else if level == 3 {
                         Level03(isPressed: $isPressed, answerState: $answerState, correctAnswer: $correctAnswer)
+                            .transition(.slide)
                     }
                    
                     Spacer()
