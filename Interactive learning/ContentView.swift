@@ -14,89 +14,52 @@ enum answerState: String, CaseIterable {
     case wrong
 }
 
+
 struct ContentView: View {
     
     @State var climber = RiveViewModel(fileName: "climber", stateMachineName: "main")
     @State var option = RiveViewModel(fileName: "option_button", stateMachineName: "main", fit:.contain)
     @State var mainButton = RiveViewModel(fileName: "main_button", stateMachineName: "main", fit:.contain)
-    @State var value1:Int = 0
-    @State var value2:Int = 0
-    @State var choice:[Int] = []
     @State var isPressed: Bool = false
-    @State var answer: Int = 0
+    @State var answer: String = ""
     @State var selectedChoice: Int? = nil
     @State var answerState: answerState = .idle
-    @State var level:Double = 0
-    var correctAnswer: Int {
-            value1 + value2
-        }
+    @State var stage:Double = 0
+    @State var level = 1
+    @State var correctAnswer = ""
     var body: some View {
         ZStack {
             VStack{
                 climber.view()
                     .frame(height: 511)
-                    .onChange(of: level) { oldValue, newValue in
-                        if level == 4 {
+                    .onChange(of: stage) { oldValue, newValue in
+                        if stage == 4 {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                level = 0
+                                stage = 0
                             }
                             
                         }
-                        climber.setInput("Stage", value: level)
+                        climber.setInput("Stage", value: stage)
                     }
                     .onChange(of: answerState) { oldValue, newValue in
                         if newValue == .wrong {
                             climber.triggerInput("wrong?")
                         }
                     }
-                    
+                
                 Spacer()
             }
             VStack {
                 Spacer()
                 VStack{
-                    HStack {
-                        Text("\(value1) + \(value2) =")
-                        
-                            ZStack{
-                                RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color("Bg.secondary"))
-                                    .frame(width:86,height:56)
-                                if isPressed {
-                                Text("\(answer)")
-                                    .contentTransition(.numericText())
-                            }
-                        }
-                    }.foregroundStyle(Color("text.main"))
-                        .font(.system(size: 45))
-                        .fontWeight(.medium)
-                        .contentTransition(.numericText())
-                    Spacer()
-                    ZStack {
-                        VStack {Spacer()
-                            Divider()
-                                .tint(Color("text.main"))
-                            Spacer()
-                            Divider()
-                                .tint(Color("text.main"))
-                            Spacer()
-                            Divider()
-                                .tint(Color("text.main"))
-                            Spacer()
-                        }
-                        VStack {
-                            ForEach(choice, id: \.self) {choice in
-                                optionView(choice: choice, selectedChoice: $selectedChoice, answerState: $answerState) {
-                                    withAnimation {
-                                        answer = choice
-                                        isPressed = true
-                                        selectedChoice = choice
-                                    }
-                                }
-                            }
-                        }
-                        .allowsHitTesting(answerState == .idle)
+                    if level == 1 {
+                        Level01(isPressed: $isPressed, answerState: $answerState, correctAnswer: $correctAnswer)
+                    } else if level == 2 {
+                        Level02(isPressed: $isPressed, answerState: $answerState, correctAnswer: $correctAnswer)
+                    } else if level == 3 {
+                        Level03(isPressed: $isPressed, answerState: $answerState, correctAnswer: $correctAnswer)
                     }
+                   
                     Spacer()
                     mainButton.view()
                         .frame(height:70)
@@ -105,16 +68,19 @@ struct ContentView: View {
                                 if answer == correctAnswer {
                                     mainButton.setInput("type", value: Double(2))
                                     answerState = .correct
-                                    level = level + 1
+                                    stage += 1
                                 } else {
                                     mainButton.setInput("type", value: Double(3))
                                     answerState = .wrong
+                                    print(correctAnswer)
+                                    print(answer)
                                 }
                             } else { withAnimation {
                                 answerState = .idle
                                 mainButton.setInput("type", value: Double(0))
                                 isPressed = false
                                 selectedChoice = nil
+                                level += 1
                             }
                             }
                         }
@@ -127,8 +93,8 @@ struct ContentView: View {
                 .padding(.vertical, 32)
                 .frame(height: UIScreen.main.bounds.height/2)
                 .background(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 32))
-                    .shadow(color:Color("text.main").opacity(0.1), radius: 20)
+                .clipShape(RoundedRectangle(cornerRadius: 32))
+                .shadow(color:Color("text.main").opacity(0.1), radius: 20)
                 
             }
             
@@ -136,30 +102,31 @@ struct ContentView: View {
             .background(Color("Background"))
             .ignoresSafeArea()
             .preferredColorScheme(.light)
-            .onAppear {
-                generateChoices()
-            }
-            .onChange(of: answerState) { _,newValue in
-                if answerState == .idle {
-                    generateChoices()
-                }
-               
-            }
+        /*
+         .onAppear {
+         generateChoices()
+         }
+         .onChange(of: answerState) { _,newValue in
+         if answerState == .idle {
+         generateChoices()
+         }
+         
+         } */
     }
     // Function to generate the choices, including the correct answer and three random values
-      func generateChoices() {
-          value1 = Int.random(in: 1...20)
-          value2 = Int.random(in: 1...20)
-          choice = [correctAnswer]
-          while choice.count < 3 {
-              let randomValue = Int.random(in: 1...40)
-              if !choice.contains(randomValue) {
-                  choice.append(randomValue)
-              }
-          }
-          choice.shuffle() // Shuffle to randomize the position of the correct answer
-      }
-
+ /*   func generateChoices() {
+        value1 = Int.random(in: 1...20)
+        value2 = Int.random(in: 1...20)
+        choice = [correctAnswer]
+        while choice.count < 3 {
+            let randomValue = Int.random(in: 1...40)
+            if !choice.contains(randomValue) {
+                choice.append(randomValue)
+            }
+        }
+        choice.shuffle() // Shuffle to randomize the position of the correct answer
+    } */
+    
 }
 
 #Preview {
@@ -168,8 +135,8 @@ struct ContentView: View {
 
 struct optionView: View {
     @State var option = RiveViewModel(fileName: "option_button", stateMachineName: "main", fit: .contain)
-    @State var choice: Int
-    @Binding var selectedChoice: Int?
+    @State var choice: String
+    @Binding var selectedChoice: String?
     @Binding var answerState: answerState
     var action: () -> Void
     
