@@ -17,8 +17,7 @@ enum answerState: String, CaseIterable {
 struct ContentView: View {
     
     @State var climber = RiveViewModel(fileName: "climber", stateMachineName: "main")
-    @State var option = RiveViewModel(fileName: "option_button", stateMachineName: "main", fit:.contain)
-    @State var mainButton = RiveViewModel(fileName: "main_button", stateMachineName: "main", fit:.contain)
+    @State var mainButton = RiveViewModel(fileName: "main_button", stateMachineName: "main")
     @State var value1:Int = 0
     @State var value2:Int = 0
     @State var choice:[Int] = []
@@ -56,11 +55,13 @@ struct ContentView: View {
                 Spacer()
                 VStack{
                     HStack {
-                        Text("\(value1) + \(value2) =")
+                        Text("\(value1) + \(value2)")
+                        Text("=")
+                            .font(.title)
                         
                             ZStack{
                                 RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color("Bg.secondary"))
+                                    .fill(Color("Bg.secondary").opacity(0.5))
                                     .frame(width:86,height:56)
                                 if isPressed {
                                 Text("\(answer)")
@@ -158,14 +159,30 @@ struct ContentView: View {
 }
 
 struct optionView: View {
-    @State var option = RiveViewModel(fileName: "option_button", stateMachineName: "main", fit: .contain)
+    @State var option = RiveViewModel(fileName: "option_button", stateMachineName: "main")
     @State var choice: Int
     @Binding var selectedChoice: Int?
     @Binding var answerState: answerState
+    @State var isPressed: Bool = false
     var action: () -> Void
     
     var body: some View {
-        option.view()
+        ZStack {
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color("Background"))
+                .offset(y: -5)
+            Text(String(choice))
+        }.background( Color(isPressed ? "Bg.dark" : "Bg.secondary"))
+            .frame(width: 300, height: 55)
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .overlay(content: {
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color(isPressed ? "text.main" :"border"), lineWidth:1 )
+            })
+        .onTapGesture {
+            action()
+        }
+     /*   option.view()
             .frame(height: 55)
             .onAppear {
                 try! option.setTextRunValue("option text", textValue: String(choice))
@@ -187,6 +204,6 @@ struct optionView: View {
                         option.setInput("state", value: Double(3))
                     }
                 }
-            }
+            } */
     }
 }
