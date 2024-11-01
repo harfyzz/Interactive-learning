@@ -72,31 +72,22 @@ struct ContentView: View {
                         .fontWeight(.medium)
                         .contentTransition(.numericText())
                     Spacer()
-                    ZStack {
-                        VStack {Spacer()
-                            Divider()
-                                .tint(Color("text.main"))
-                            Spacer()
-                            Divider()
-                                .tint(Color("text.main"))
-                            Spacer()
-                            Divider()
-                                .tint(Color("text.main"))
-                            Spacer()
-                        }
                         VStack {
                             ForEach(choice, id: \.self) {choice in
-                                optionView(choice: choice, selectedChoice: $selectedChoice, answerState: $answerState) {
-                                    withAnimation {
-                                        answer = choice
-                                        isPressed = true
-                                        selectedChoice = choice
+                                ZStack {
+                                    Divider()
+                                        .tint(Color("text.main"))
+                                    optionView(choice: choice, selectedChoice: $selectedChoice, answerState: $answerState) {
+                                        withAnimation {
+                                            answer = choice
+                                            isPressed = true
+                                            selectedChoice = choice
+                                        }
                                     }
                                 }
                             }
                         }
                         .allowsHitTesting(answerState == .idle)
-                    }
                     Spacer()
                     mainButton.view()
                         .frame(height:70)
