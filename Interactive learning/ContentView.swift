@@ -167,7 +167,7 @@ struct optionView: View {
     var action: () -> Void
     
     var body: some View {
-        ZStack {
+    /*    ZStack {
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color("Background"))
                 .offset(y: -5)
@@ -181,8 +181,8 @@ struct optionView: View {
             })
         .onTapGesture {
             action()
-        }
-     /*   option.view()
+        } */
+        option.view()
             .frame(height: 55)
             .onAppear {
                 try! option.setTextRunValue("option text", textValue: String(choice))
@@ -204,6 +204,6 @@ struct optionView: View {
                         option.setInput("state", value: Double(3))
                     }
                 }
-            } */
+            } 
     }
 }
