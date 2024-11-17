@@ -11,7 +11,7 @@ import SwiftUI
 struct Interactive_learningApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(climber: character.shared.riveImage,mainButton: character.shared.mainButton)
         }
     }
 }

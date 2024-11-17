@@ -16,8 +16,8 @@ enum answerState: String, CaseIterable {
 
 struct ContentView: View {
     
-    @State var climber = RiveViewModel(fileName: "climber", stateMachineName: "main")
-    @State var mainButton = RiveViewModel(fileName: "main_button", stateMachineName: "main")
+    var climber: RiveViewModel
+    var mainButton:RiveViewModel
     @State var value1:Int = 0
     @State var value2:Int = 0
     @State var choice:[Int] = []
@@ -74,11 +74,11 @@ struct ContentView: View {
                         .contentTransition(.numericText())
                     Spacer()
                         VStack {
-                            ForEach(choice, id: \.self) {choice in
+                            ForEach(Array(zip(choice, choiceModels)), id: \.0) { (choice, model) in
                                 ZStack {
                                     Divider()
                                         .tint(Color("text.main"))
-                                    optionView(choice: choice, selectedChoice: $selectedChoice, answerState: $answerState) {
+                                    optionView(option: model, choice: choice, selectedChoice: $selectedChoice, answerState: $answerState) {
                                         withAnimation {
                                             answer = choice
                                             isPressed = true
@@ -139,27 +139,34 @@ struct ContentView: View {
             }
     }
     // Function to generate the choices, including the correct answer and three random values
-      func generateChoices() {
-          value1 = Int.random(in: 1...20)
-          value2 = Int.random(in: 1...20)
-          choice = [correctAnswer]
-          while choice.count < 3 {
-              let randomValue = Int.random(in: 1...40)
-              if !choice.contains(randomValue) {
-                  choice.append(randomValue)
-              }
-          }
-          choice.shuffle() // Shuffle to randomize the position of the correct answer
-      }
+    @State var choiceModels: [RiveViewModel] = []
+
+    func generateChoices() {
+        value1 = Int.random(in: 1...20)
+        value2 = Int.random(in: 1...20)
+        choice = [correctAnswer]
+        
+        // Generate unique random choices
+        while choice.count < 3 {
+            let randomValue = Int.random(in: 1...40)
+            if !choice.contains(randomValue) {
+                choice.append(randomValue)
+            }
+        }
+        choice.shuffle() // Shuffle to randomize the position of the correct answer
+        
+        // Create a separate RiveViewModel for each choice
+        choiceModels = choice.map { _ in RiveViewModel(fileName: "option_button", stateMachineName: "main") }
+    }
 
 }
 
 #Preview {
-    ContentView()
+    ContentView(climber: character.shared.riveImage, mainButton: character.shared.mainButton)
 }
 
 struct optionView: View {
-    @State var option = RiveViewModel(fileName: "option_button", stateMachineName: "main")
+    var option:RiveViewModel
     @State var choice: Int
     @Binding var selectedChoice: Int?
     @Binding var answerState: answerState
@@ -206,4 +213,11 @@ struct optionView: View {
                 }
             } 
     }
+}
+
+class character: ObservableObject {
+    static let shared = character()
+    let riveImage = RiveViewModel(fileName: "climber", stateMachineName: "main")
+    let optionButton = RiveViewModel(fileName: "option_button", stateMachineName: "main")
+    let mainButton = RiveViewModel(fileName: "main_button", stateMachineName: "main")
 }
